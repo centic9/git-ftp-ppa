@@ -1,0 +1,30 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+MANPAGES := man/git-ftp.1
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	$(RM) $(MANPAGES)
+
+override_dh_auto_install: $(MANPAGES)
+	:
+
+$(MANPAGES):
+	pandoc --columns=84 --standalone --to=man --output=$@ $@.md
+	perl -0pi -e 's{(\s)\-}{$$1\\-}sg;' $@
+
+override_dh_installchangelogs:
+	dh_installchangelogs CHANGELOG.md
+
+DPATH := $(abspath $(dir $(MAKEFILE_LIST)))
+VER ?= $(shell dpkg-parsechangelog -l$(DPATH)/changelog | perl -ne 'print $$1 if m{Version:\s*([\d\.]+)}')
+.PHONY: get-orig-source
+get-orig-source:
+	@echo "# Downloading..."
+	uscan --noconf --verbose --rename --destdir=$(CURDIR) --check-dirname-level=0 --force-download --download-version $(VER) $(DPATH)

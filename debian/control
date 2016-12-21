@@ -1,0 +1,21 @@
+Source: git-ftp
+Section: utils
+Priority: optional
+Maintainer: Dmitry Smirnov <onlyjob@debian.org>
+Uploaders: René Moser <mail@renemoser.net>
+Build-Depends: debhelper (>= 9), git, pandoc, perl
+Standards-Version: 3.9.8
+Homepage: http://github.com/git-ftp/git-ftp
+Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/git-ftp.git
+Vcs-Git: https://anonscm.debian.org/git/collab-maint/git-ftp.git
+
+Package: git-ftp
+Section: vcs
+Architecture: all
+Depends: ${misc:Depends}, bash (>= 4.2), curl, git-core
+Enhances: git
+Description: Git powered FTP client written as shell script
+ git-ftp is a shell script for uploading Git tracked files to a FTP server. By
+ default, it uploads only those files which have changed since the last upload.
+ This saves time and bandwidth. It can even work with different branches.
+ See manpage for more options.

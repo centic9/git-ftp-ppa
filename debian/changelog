@@ -1,0 +1,77 @@
+git-ftp (1.3.1-1) unstable; urgency=medium
+
+  * New upstream release [December 2016].
+  * Standards-Version: 3.9.8.
+  * Vcs-Git URL to HTTPS.
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Wed, 21 Dec 2016 17:33:43 +1100
+
+git-ftp (1.2.0-1) unstable; urgency=medium
+
+  * New upstream release [March 2016].
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Sun, 03 Jul 2016 20:21:46 +1000
+
+git-ftp (1.1.0-1) unstable; urgency=medium
+
+  * New upstream release [November 2015] (Closes: #818888).
+  * Standards-Version: 3.9.7
+  * Updated Vcs-Browser URL.
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Tue, 22 Mar 2016 10:36:12 +1100
+
+git-ftp (1.0.2-1) unstable; urgency=low
+
+  [ René Moser ]
+  * New upstream release.
+  * Standards to 3.9.6.
+
+  [ Dmitry Smirnov ]
+  * "debian/watch" file update.
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Wed, 29 Apr 2015 09:51:17 +1000
+
+git-ftp (0.9.0-1) unstable; urgency=low
+
+  [ René Moser ]
+  * New upstream release.
+
+  [ Dmitry Smirnov ]
+  * Skip "dh_auto_install" to avoid shipping executable in "/bin".
+  * Standards to 3.9.5.
+
+ -- René Moser <mail@renemoser.net>  Sun, 01 Dec 2013 15:50:52 +0100
+
+git-ftp (0.8.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- René Moser <mail@renemoser.net>  Mon, 20 Aug 2012 19:44:58 +0200
+
+git-ftp (0.8.0+git20120623-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- René Moser <mail@renemoser.net>  Sun, 24 Jun 2012 21:50:59 +0200
+
+git-ftp (0.7.4+git20120528-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- René Moser <mail@renemoser.net>  Mon, 28 May 2012 16:26:00 +0200
+
+git-ftp (0.7.3+git20120419-1) unstable; urgency=low
+
+  * New upstream release.
+
+  [Dmitry Smirnov]
+  * replace generated changelog with upstream one.
+
+ -- René Moser <mail@renemoser.net>  Mon, 23 Apr 2012 10:36:41 +0200
+
+git-ftp (0.7.2+git20120228-1) unstable; urgency=low
+
+  * Initial release (Closes: #660011).
+    Thanks to Daniel Baumann.
+
+ -- Dmitry Smirnov <onlyjob@member.fsf.org>  Sun, 15 Apr 2012 11:51:51 +1000
