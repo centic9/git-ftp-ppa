@@ -1,7 +1,9 @@
 # uscan(1) configuration file.
+version=4
 
-version=3
-
-opts=dversionmangle=s/\+git\d+// \
- https://github.com/git-ftp/git-ftp/releases \
- .*/archive/v?(\d[\d\.]+)\.tar\.gz
+opts="\
+pgpmode=none,\
+repack,compression=xz,repacksuffix=+dfsg,\
+dversionmangle=s{[+~]dfsg\d*}{},\
+" https://github.com/git-ftp/git-ftp/releases \
+  .*/archive/v?(\d[\d\.]+)\.tar\.gz

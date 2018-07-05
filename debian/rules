@@ -21,10 +21,3 @@ $(MANPAGES):
 
 override_dh_installchangelogs:
 	dh_installchangelogs CHANGELOG.md
-
-DPATH := $(abspath $(dir $(MAKEFILE_LIST)))
-VER ?= $(shell dpkg-parsechangelog -l$(DPATH)/changelog | perl -ne 'print $$1 if m{Version:\s*([\d\.]+)}')
-.PHONY: get-orig-source
-get-orig-source:
-	@echo "# Downloading..."
-	uscan --noconf --verbose --rename --destdir=$(CURDIR) --check-dirname-level=0 --force-download --download-version $(VER) $(DPATH)

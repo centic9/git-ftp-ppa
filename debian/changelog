@@ -1,3 +1,14 @@
+git-ftp (1.5.1+dfsg-1) unstable; urgency=medium
+
+  * New upstream release [May 2018].
+    + fixed "ftp download can remove .git directory" (Closes: #869818).
+  * Standards-Version: 4.1.5
+  * debhelper & compat to version 11
+  * watch file to version 4
+  * Vcs URLs to Salsa.
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Fri, 06 Jul 2018 04:07:44 +1000
+
 git-ftp (1.3.1-1) unstable; urgency=medium
 
   * New upstream release [December 2016].
