@@ -8,14 +8,14 @@ Files-Excluded:
     tests/lftp-*
 
 Files: *
-Copyright: 2010-2015 René Moser <mail@renemoser.net>
+Copyright: 2010-2019 René Moser <mail@renemoser.net>
            2010      Eric Greve <ericgreve@gmail.com>
            2010      Timo Besenreuther <timo@ezdesign.de>
 License: GPL-3
 Comment: Other contributors are listed in file AUTHORS
 
 Files: debian/*
-Copyright: 2012-2018 Dmitry Smirnov <onlyjob@debian.org>
+Copyright: 2012-2019 Dmitry Smirnov <onlyjob@debian.org>
            2010      René Moser <mail@renemoser.net>
 License: GPL-3+
 

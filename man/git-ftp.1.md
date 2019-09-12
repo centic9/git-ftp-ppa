@@ -1,6 +1,6 @@
-% GIT-FTP(1) Git-ftp 1.5.1
+% GIT-FTP(1) Git-ftp 1.5.2
 %
-% 2018-05-15
+% 2019-04-18
 
 # NAME
 
@@ -610,5 +610,5 @@ The upstream BTS can be found at <https://github.com/git-ftp/git-ftp/issues>.
 # AUTHORS
 
 Git-ftp was started by Rene Moser and is currently maintained by Maikel Linke.
-Numerous conributions have come from Github users.
+Numerous contributions have come from GitHub users.
 See the AUTHORS file for an incomplete list of contributors.

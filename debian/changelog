@@ -1,3 +1,11 @@
+git-ftp (1.5.2+dfsg-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Standards-Version: 4.4.0.
+  * DH & compat to version 12.
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Thu, 12 Sep 2019 19:36:14 +1000
+
 git-ftp (1.5.1+dfsg-1) unstable; urgency=medium
 
   * New upstream release [May 2018].
