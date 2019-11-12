@@ -1,3 +1,9 @@
+git-ftp (1.5.2+dfsg-1ubuntu0~ppa1) bionic; urgency=medium
+
+  * Backport to Bionic for support for git >= 1.16.0, see #417.
+
+ -- Dominik Stadler (Ubuntu key) <dominik.stadler@gmx.at>  Tue, 12 Nov 2019 21:55:08 +0100
+
 git-ftp (1.5.2+dfsg-1) unstable; urgency=medium
 
   * New upstream release.
