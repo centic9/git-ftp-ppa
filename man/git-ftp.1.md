@@ -1,6 +1,6 @@
-% GIT-FTP(1) git-ftp User Manual
+% GIT-FTP(1) Git-ftp 1.5.1
 %
-% 2016-12-03
+% 2018-05-15
 
 # NAME
 
@@ -36,6 +36,11 @@ different and handles only those files. That saves time and bandwidth.
 `push`
 :	Uploads files that have changed and
 	deletes files that have been deleted since the last upload.
+	If you are using GIT LFS, this uploads LFS link files, 
+	not large files (stored on LFS server). 
+	To upload the LFS tracked files, run `git lfs pull`
+	before `git ftp push`: LFS link files will be replaced with 
+	large files so they can be uploaded.  
 
 `download` (EXPERIMENTAL)
 :	Downloads changes from the remote host into your working tree.
@@ -89,8 +94,13 @@ different and handles only those files. That saves time and bandwidth.
 `-a`, `--all`
 :	Uploads all files of current Git checkout.
 
+`-c`, `--commit`
+:	Sets SHA1 hash of last deployed commit by option.
+
 `-A`, `--active`
-:	Uses FTP active mode.
+:	Uses FTP active mode. This works only if you have either no firewall
+	and a direct connection to the server or an FTP aware firewall. If you
+	don't know what it means, you probably won't need it.
 
 `-b [branch]`, `--branch [branch]`
 :	Push a specific branch
@@ -130,7 +140,7 @@ different and handles only those files. That saves time and bandwidth.
 	root path.
 
 `--key`
-:	SSH private key file name.
+:	SSH private key file name for SFTP.
 
 `--pubkey`
 :	SSH public key file name. Used with --key option.
@@ -158,8 +168,18 @@ different and handles only those files. That saves time and bandwidth.
 `--no-verify`
 :	Bypass the pre-ftp-push hook. See **HOOKS** section.
 
+`--enable-post-errors`
+:	Fails if post-ftp-push raises an error.
+
+`--auto-init`
+:	Automatically run init action when running push action
+
 `--version`
 :	Prints version.
+
+`-x [protocol://]host[:port]`, `--proxy [protocol://]host[:port]`
+:	Use the specified proxy. This option is passed to curl.
+	See the curl manual for more information.
 
 # URL
 
@@ -186,11 +206,78 @@ But, there is not just FTP. Supported protocols are:
 `ftpes://...`
 :	FTP over explicit SSL (FTPES) protocol
 
+# EXAMPLES
+
+## FIRST UPLOADS
+
+Upload your files to an FTP server the first time:
+
+	$ git ftp init -u "john" -P "ftp://example.com/public_html"
+
+It will authenticate with the username `john` and ask for the
+password. By default, it tries to transfer data in EPSV mode.
+Depending on the network and server configuration, that may fail.
+You can try to add the `--disable-epsv` option to use the IPv4 passive FTP
+connection (PASV). In rare circumstances, you can use `--active` for the
+original FTP transfer mode. These options do not apply to SFTP.
+
+You are less likely to face connection problems with SFTP.
+But be aware of the different
+handling of relative and absolute paths. If the directory `public_html` is in
+the home directory on the server, then upload like this:
+
+	$ git ftp init -u "john" --key "$HOME/.ssh/id_rsa" "sftp://example.com/~/public_html"
+
+Otherwise it will use an absolute path, for example:
+
+	$ git ftp init -u "john" --key "$HOME/.ssh/id_rsa" "sftp://example.com/var/www"
+
+On some systems Git-ftp fails to verify the server's fingerprint.
+You can then use the `--insecure` option to skip the verification.
+That will leave you vulnerable to man-in-the-middle attacks, but is still more
+secure than plain FTP.
+
+Git-ftp guesses the path of the public key file corresponding to your private
+key file. If you just have a private key, for example a .pem file, you need
+Git-ftp version 1.3.4 and Curl version 7.39.0 or newer.
+If you have an older version of Git-ftp or Curl, you can
+create the public key with the ssh-keygen command:
+
+	$ ssh-keygen -y -f key.pem > key.pem.pub
+
+## RESET THE UPLOADED STATE
+
+Many people already uploaded their files to the server.
+If you want to mark the uploaded version as the same as your local branch:
+
+	$ git ftp catchup
+
+This example omits options like `--user`, `--password` and `url`.
+See DEFAULTS below to learn how to store your configuration so that you don't
+need to repeat it.
+
+After you stored the commit id of the uploaded commit via `init` or
+`catchup`, you can then upload any new commits:
+
+	$ git ftp push
+
+If you discovered a bug in the last uploaded version and you want to go back
+by three commits:
+
+	$ git checkout HEAD~3
+	$ git ftp push
+
+Or maybe some files got changed on the server and you want to upload all
+changes between branch `master` and branch `develop`:
+
+	$ git checkout develop         # This is the version which is uploaded.
+	$ git ftp push --commit master # Upload changes compared to master.
+
 # DEFAULTS
 
 Don't repeat yourself. Setting config defaults for git-ftp in .git/config
 
-	$ git config git-ftp.<(url|user|password|syncroot|cacert|keychain)> <value>
+	$ git config git-ftp.<(url|user|password|syncroot|cacert|keychain|...)> <value>
 
 Everyone likes examples:
 
@@ -203,6 +290,7 @@ Everyone likes examples:
 	$ git config git-ftp.insecure 1
 	$ git config git-ftp.key ~/.ssh/id_rsa
 	$ git config git-ftp.keychain user@example.com
+	$ git config git-ftp.remote-root htdocs
 
 After setting those defaults, push to *john@ftp.example.com* is as simple as
 
@@ -263,9 +351,11 @@ Deleting scopes is easy using the `remove-scope` action.
 # IGNORING FILES TO BE SYNCED
 
 Add patterns to `.git-ftp-ignore` and all matching file names will be ignored.
-The patterns are interpreted as shell glob patterns.
+The patterns are interpreted as shell glob patterns since version 1.1.0.
+Before version 1.1.0, patterns were interpreted as regular expressions.
+Here are some glob pattern examples:
 
-For example, ignoring everything in a directory named `config`:
+Ignoring everything in a directory named `config`:
 
 	config/*
 
@@ -276,6 +366,15 @@ Ignoring all files having extension `.txt`:
 Ignoring a single file called `foobar.txt`:
 
 	foobar.txt
+
+Ignoring Git related files:
+
+	.gitignore
+	*/.gitignore      # ignore files in sub directories
+	*/.gitkeep
+	.git-ftp-ignore
+	.git-ftp-include
+	.gitlab-ci.yml
 
 # SYNCING UNTRACKED FILES
 
@@ -302,15 +401,24 @@ file will be triggered.
 	css/style.css:scss/style.scss
 	css/style.css:scss/mixins.scss
 
-If a local untracked file is deleted, a paired tracked file will trigger the
-deletion of the remote file on the server.
+If a local untracked file is deleted, any change of a paired tracked file will
+trigger the deletion of the remote file on the server.
 
-When using the `--syncroot` option, all paths are relative to the set syncroot.
-If your source file is outside the syncroot, add a / and define a path relative
-to the Git working directory.
+All paths are usually relative to the Git working directory.
+When using the `--syncroot` option, paths of tracked files
+(right side of the colon) are relative to the set syncroot.
+Example:
+
+	# upload "html/style.css" triggered by html/style.scss
+	# with syncroot "html"
+	html/style.css:style.scss
+
+If your *source* file is outside the syncroot,
+prefix it with a / and define a path relative
+to the Git working directory. For example:
 
 	# upload "dist/style.css" with syncroot "dist"
-	style.css:/style.scss
+	dist/style.css:/src/style.scss
 
 It is also possible to upload whole directories.
 For example, if you use a package manager like composer, you can upload all

@@ -17,6 +17,8 @@
 # Or you can write it in one line:
 #     TEST_CASES='test_displays_usage' GIT_FTP_PASSWD='s3cr3t' ./git-ftp-test.sh
 
+readonly VERSION='1.5.1'
+
 suite() {
 	for testcase in ${TEST_CASES}; do
 		suite_addTest "$testcase"
@@ -94,7 +96,29 @@ test_displays_usage() {
 
 test_prints_version() {
 	version=$($GIT_FTP_CMD 2>&1 --version)
-	assertEquals "git-ftp version 1.3.1"  "$version"
+	assertEquals "git-ftp version $VERSION" "$version"
+}
+
+test_unknown_protocol() {
+	output="$($GIT_FTP_CMD init badProtocol://localhost/ 2>&1)"
+	assertEquals 6 $?
+	assertEquals "fatal: Protocol unknown 'badProtocol://'." "$output"
+}
+
+test_supported_protocol_ftp() {
+	output="$($GIT_FTP_CMD init ftp://localhost/ 2>&1)"
+	status=$?
+	assertNotEquals 6 $status
+	assertNotEquals "fatal: Protocol unknown 'ftp://'." "$output"
+	assertNotEquals "fatal: Protocol 'ftp' not supported by curl, exiting..." "$output"
+}
+
+test_supported_protocol_ftpes() {
+	output="$($GIT_FTP_CMD init ftpes://localhost/ 2>&1)"
+	status=$?
+	assertNotEquals 6 $status
+	assertNotEquals "fatal: Protocol unknown 'ftpes://'." "$output"
+	assertNotEquals "fatal: Protocol 'ftpes' not supported by curl, exiting..." "$output"
 }
 
 test_inits() {
@@ -136,21 +160,30 @@ test_inits_and_pushes() {
 	assertEquals 0 $rtrn
 }
 
+test_auto_init() {
+	push="$($GIT_FTP push --auto-init)"
+	assertEquals 0 $?
+	assertTrue ' upload "test 1.txt"' "remote_file_equals 'test 1.txt'"
+
+	init2="$($GIT_FTP init 2>&1)"
+	assertEquals 2 $?
+	assertEquals "fatal: Commit found, use 'git ftp push' to sync. Exiting..." "$init2"
+
+	# make some changes
+	echo "1" >> "./test 1.txt"
+	git commit -a -m "change" > /dev/null 2>&1
+
+	push="$($GIT_FTP push --auto-init)"
+	assertEquals 0 $?
+	assertTrue ' upload "test 1.txt"' "remote_file_equals 'test 1.txt'"
+}
+
 test_pushes_and_fails() {
 	cd $GIT_PROJECT_PATH
 	push="$($GIT_FTP push 2>&1)"
 	rtrn=$?
 	assertEquals "fatal: Could not get last commit. Network down? Wrong URL? Use 'git ftp init' for the initial push., exiting..." "$push"
 	assertEquals 5 $rtrn
-}
-
-test_push_unknown_commit() {
-	$GIT_FTP init > /dev/null
-	echo '000000000' | $CURL -s -T - $CURL_URL/.git-ftp.log
-	push="$($GIT_FTP push 0>&- 2>&1)"
-	assertEquals 0 $?
-	assertContains 'Unknown SHA1 object' "$push"
-	assertContains 'Do you want to ignore' "$push"
 }
 
 test_push_nothing() {
@@ -194,32 +227,69 @@ test_push_twice() {
 	assertTrue "$push" "echo \"$push\" | grep 'Everything up-to-date.'"
 }
 
-test_push_unknown_sha1() {
-	cd $GIT_PROJECT_PATH
-	init=$($GIT_FTP init)
+test_push_different_branches() {
+	init="$($GIT_FTP init)"
+	git checkout master -b branch1 -q
+	echo "1" >> "test 1.txt"
+	git commit -a -m "change 1" -q
+	push="$($GIT_FTP push)"
+	git checkout master -b branch2 -q
+	echo "2" >> "test 2.txt"
+	git commit -a -m "change 2" -q
+	push="$($GIT_FTP push)"
+	assertTrue "$push" "echo \"$push\" | grep '2 files to sync:'"
+	assertTrue ' test 1.txt uploaded' "remote_file_equals 'test 1.txt'"
+	assertTrue ' test 2.txt uploaded' "remote_file_equals 'test 2.txt'"
+}
+
+test_push_unknown_commit_say_nothing() {
+	$GIT_FTP init > /dev/null
+
+	# change remote SHA1
+	echo '000000000' | $CURL -s -T - $CURL_URL/.git-ftp.log
+
 	# make some changes
 	echo "1" >> "./test 1.txt"
 	git commit -a -m "change" > /dev/null 2>&1
-	# change remote SHA1
-	echo '000000000' | $CURL -T - $CURL_URL/.git-ftp.log 2> /dev/null
-	push=$(echo 'N' | $GIT_FTP push)
-	assertEquals 0 $?
-	echo "$push" | grep 'Unknown SHA1 object' > /dev/null
+
+	push="$(echo '' | $GIT_FTP push)"
+	assertEquals 2 $?
+	assertContains 'Unknown SHA1 object' "$push"
+	assertContains 'Do you want to ignore' "$push"
 	assertFalse ' test 1.txt uploaded' "remote_file_equals 'test 1.txt'"
 }
 
-test_push_unknown_sha1_Y() {
-	cd $GIT_PROJECT_PATH
-	init=$($GIT_FTP init)
+test_push_unknown_commit_say_no() {
+	$GIT_FTP init > /dev/null
+
+	# change remote SHA1
+	echo '000000000' | $CURL -s -T - $CURL_URL/.git-ftp.log
+
 	# make some changes
 	echo "1" >> "./test 1.txt"
 	git commit -a -m "change" > /dev/null 2>&1
+
+	push="$(echo 'N' | $GIT_FTP push)"
+	assertEquals 0 $?
+	assertContains 'Unknown SHA1 object' "$push"
+	assertContains 'Do you want to ignore' "$push"
+	assertFalse ' test 1.txt uploaded' "remote_file_equals 'test 1.txt'"
+}
+
+test_push_unknown_commit_say_yes() {
+	$GIT_FTP init > /dev/null
+
 	# change remote SHA1
-	echo '000000000' | $CURL -T - $CURL_URL/.git-ftp.log 2> /dev/null
-	push=$(echo 'Y' | $GIT_FTP push)
+	echo '000000000' | $CURL -s -T - $CURL_URL/.git-ftp.log
+
+	# make some changes
+	echo "1" >> "./test 1.txt"
+	git commit -a -m "change" > /dev/null 2>&1
+
+	push="$(echo 'Y' | $GIT_FTP push)"
 	assertEquals 0 $?
-	echo "$push" | grep 'Unknown SHA1 object' > /dev/null
-	assertEquals 0 $?
+	assertContains 'Unknown SHA1 object' "$push"
+	assertContains 'Do you want to ignore' "$push"
 	assertTrue ' test 1.txt uploaded' "remote_file_equals 'test 1.txt'"
 }
 
@@ -444,6 +514,22 @@ test_ignore_wildcard_files() {
 	do
 		assertFalse 'test failed: was not ignored' "remote_file_exists 'test $i.txt'"
 	done;
+}
+
+test_ignore_git_files() {
+	echo ".gitignore" >> .git-ftp-ignore
+	echo "*/.gitkeep" >> .git-ftp-ignore
+	echo ".git-ftp-ignore" >> .git-ftp-ignore
+
+	echo "Please keep this directory." > "dir 1/.gitkeep"
+
+	git add .
+	git commit -m "Ignoring Git files" -q
+
+	init="$($GIT_FTP init)"
+
+	assertRemoteFileMissing ".git-ftp-ignore"
+	assertRemoteFileMissing "dir 1/.gitkeep"
 }
 
 test_include_init() {
@@ -746,6 +832,16 @@ test_syncroot() {
 	git add . > /dev/null 2>&1
 	git commit -a -m "syncroot test" > /dev/null 2>&1
 	init=$($GIT_FTP init --syncroot "$syncroot")
+	assertTrue 'test failed: syncroot.txt not there as expected' "remote_file_exists 'syncroot.txt'"
+}
+
+test_syncroot_config() {
+	syncroot='foo bar'
+	mkdir "$syncroot" && echo "test" > "$syncroot/syncroot.txt"
+	git add . > /dev/null 2>&1
+	git commit -a -m "syncroot test" > /dev/null 2>&1
+	git config git-ftp.syncroot "$syncroot"
+	init="$($GIT_FTP init)"
 	assertTrue 'test failed: syncroot.txt not there as expected' "remote_file_exists 'syncroot.txt'"
 }
 
@@ -1072,6 +1168,78 @@ test_post_push() {
 	assertEquals "$message" "$out"
 }
 
+test_insecure_defaults_value() {
+	out="$($GIT_FTP init -v 2>/dev/null)"
+	echo "$out" | grep --quiet "Insecure is '0'"
+	assertEquals 0 $?
+}
+
+test_insecure_from_config() {
+	git config git-ftp.insecure 1
+	out="$($GIT_FTP init -v 2>/dev/null)"
+	echo "$out" | grep --quiet "Insecure is '1'"
+	assertEquals 0 $?
+}
+
+test_insecure_options() {
+	out="$($GIT_FTP --insecure init -v 2>/dev/null)"
+	echo "$out" | grep --quiet "Insecure is '1'"
+	assertEquals 0 $?
+}
+
+test_post_push_arguments_first() {
+	hook=".git/hooks/post-ftp-push"
+	echo 'echo "arguments: $1 $2 $3 $4"' > "$hook"
+	scope="$GIT_FTP_HOST$GIT_FTP_PORT"
+	url="ftp://$GIT_FTP_USER:***@$GIT_FTP_HOST$GIT_FTP_PORT/$REMOTE_PATH/"
+	local_commit="$(git log -n 1 --pretty=format:%H)"
+	remote_commit=""
+	expected="arguments: $scope $url $local_commit $remote_commit"
+	chmod +x "$hook"
+	out="$($GIT_FTP init -n)"
+	rtrn=$?
+	assertEquals 0 $rtrn
+	assertEquals "$expected" "$out"
+}
+
+test_post_push_arguments_repeated() {
+	first_commit="$(git log -n 1 --pretty=format:%H)"
+	$GIT_FTP init -n
+	touch newfile
+	git add . > /dev/null 2>&1
+	git commit -m 'Second commit' -q
+	hook=".git/hooks/post-ftp-push"
+	echo 'echo "arguments: $1 $2 $3 $4"' > "$hook"
+	scope="$GIT_FTP_HOST$GIT_FTP_PORT"
+	url="ftp://$GIT_FTP_USER:***@$GIT_FTP_HOST$GIT_FTP_PORT/$REMOTE_PATH/"
+	local_commit="$(git log -n 1 --pretty=format:%H)"
+	remote_commit="$first_commit"
+	expected="arguments: $scope $url $local_commit $remote_commit"
+	chmod +x "$hook"
+	out="$($GIT_FTP push -n)"
+	rtrn=$?
+	assertEquals 0 $rtrn
+	assertEquals "$expected" "$out"
+}
+
+test_post_push_no_fail() {
+	hook=".git/hooks/post-ftp-push"
+	echo 'exit 99' > "$hook"
+	chmod +x "$hook"
+	$GIT_FTP init -n
+	rtrn=$?
+	assertEquals 0 $rtrn
+}
+
+test_post_push_fail() {
+	hook=".git/hooks/post-ftp-push"
+	echo 'exit 99' > "$hook"
+	chmod +x "$hook"
+	$GIT_FTP init -n --enable-post-errors
+	rtrn=$?
+	assertEquals 9 $rtrn
+}
+
 disabled_test_file_named_dash() {
 	cd $GIT_PROJECT_PATH
 	echo "foobar" > -
@@ -1092,6 +1260,16 @@ remote_file_equals() {
 	local remote="$2"
 	[ -z "$remote" ] && remote="$file"
 	$CURL -s "$CURL_URL/$remote" | diff - -- "$file" > /dev/null
+}
+
+assertRemoteFileExists() {
+	local file="$1"
+	assertTrue " File '$file' does not exist on remote." "remote_file_exists '$file'"
+}
+
+assertRemoteFileMissing() {
+	local file="$1"
+	assertFalse " File '$file' exists on remote." "remote_file_exists '$file'"
 }
 
 assertContains() {

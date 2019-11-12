@@ -1,3 +1,48 @@
+Version 1.5.1
+=============
+
+* Fix FTPES support
+* Add new option `--proxy`
+* The `--insecure` option is also read from the git config
+
+Version 1.5.0
+=============
+
+* Fix "Unknown SHA1 object" with Git > 2.16.0
+* Avoid git warning: empty strings as pathspecs
+* The .git-ftp-ignore file contains globs now, not regular expressions
+* Make --insecure option override config setting
+* Fix bug that can delete the .git folder using `git ftp download` with exclude patterns
+* Allow post-ftp-push hooks to pass on failures
+* Fixed post hook reference to deployed SHA1
+* Add a check covering curl presence and protocol support
+* Update INSTALL.md instructions for OS X 10.13.3
+* Add suggestion for usage with GIT LFS to documentation
+* Add config git-ftp.remote-root to documentation
+* Document using SFTP
+
+Version 1.4.0
+=============
+
+* Improve test coverage
+* Fail in scripts if remote commit is unknown
+* Correct and extend documentation of .git-ftp-include file
+* De-couple --key and --pubkey options
+* Handling --cacert option safely
+* Extend documentation of .git-ftp-ignore file
+
+Version 1.3.3
+=============
+
+* Add --auto-init for push action
+* Improved installation instructions for Windows
+
+Version 1.3.2
+=============
+
+* Use longer `mktmp` pattern to support busybox
+* Update Windows installation instructions
+
 Version 1.3.1
 =============
 

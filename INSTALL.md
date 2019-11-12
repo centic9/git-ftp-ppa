@@ -5,7 +5,7 @@ You can find instructions for:
 - [Linux/Unix based systems using make](#linuxunix-based-systems-using-make)
 - [Debian, Ubuntu and others using apt](#debian-ubuntu-and-others-using-apt)
 - [ArchLinux](#archlinux-aur-unofficial)
-- [Mac OS X](#mac-os-x)
+- [MacOS](#macos)
 - [Windows](#windows)
 
 
@@ -13,7 +13,7 @@ You can find instructions for:
 
 Note: Make sure Git and cURL are installed.
 
-This should work on Mac OS X, Debian, Ubuntu, Fedora, RedHat, etc.
+This should work on MacOS, Debian, Ubuntu, Fedora, RedHat, etc.
 
 The easiest way is to use Git for installing:
 
@@ -69,13 +69,20 @@ apt-get update
 See https://aur.archlinux.org/packages/?O=0&C=0&SeB=nd&K=git-ftp&SB=v&SO=d&PP=50&do_Search=Go
 
 
-## Mac OS X
+## MacOS
+
+First, ensure you have installed Xcode and command line tools. Command line tools can be download at https://developer.apple.com/download/more/ or via command: 
+
+```
+xcode-select --install
+```
 
 Using homebrew:
 
 ```sh
 brew install git
-brew install curl --with-ssl --with-libssh2
+brew install curl --with-libssh2
+brew install brotli
 brew install git-ftp
 ```
 
@@ -83,41 +90,60 @@ brew install git-ftp
 
 There are at least two ways to install git-ftp on Windows.
 
+- Using Git for Windows, former msysgit (recommended)
 - Using cygwin
-- Using msysgit (recommended)
+
+### Git for Windows, former msysgit (recommended)
+
+Install [Git for Windows](https://git-for-windows.github.io/).
+It comes with curl installed, but it doesn't support SFTP by default.
+In order to use SFTP, [download curl](http://curl.haxx.se/download.html) for
+Windows with SFTP support.
+Win32 2000/XP MSI or Win64 2000/XP x86_64 MSI is recommended.
+If you installed curl, then remove `bin/curl.exe` from your Git for Windows
+installation directory. It will fall back to the newly installed version.
+
+Finally, open the Git Bash which is located in `C:\Program Files (x86)\Git`
+by default.
+
+```bash
+curl https://raw.githubusercontent.com/git-ftp/git-ftp/master/git-ftp > /bin/git-ftp
+chmod 755 /bin/git-ftp
+```
+
+*Note: the `/bin` directory is an alias.
+By default this is the same as `C:\Program Files (x86)\Git\usr\bin`.*
 
 ### cygwin
 
 Install cygwin and install the package 'curl'.
-
-### msysgit
-
-Install msysgit. It comes with 'curl' installed by default, however it doesn't support SFTP by default.
-In order to use SFTP, download curl for Windows with SFTP support on the [curl website]( http://curl.haxx.se/download.html). Win32 2000/XP MSI or Win64 2000/XP x86_64 MSI is recommended. Then in your msysgit installation folder, remove bin/curl.exe. This will allow for all calls to curl to fall back from Git's curl to the one you just installed that also supports SFTP.
-
-After this, open git bash (or cygwin bash for cygwin only):
+Then open the cygwin console and install Git-ftp with the following commands:
 
 ```bash
-curl https://raw.githubusercontent.com/git-ftp/git-ftp/develop/git-ftp > /bin/git-ftp
-chmod +x /bin/git-ftp
+curl https://raw.githubusercontent.com/git-ftp/git-ftp/master/git-ftp > /bin/git-ftp
+chmod 755 /bin/git-ftp
 ```
 
-*Note: the /bin/ directory is a alias, and if you use msysgit this is the same as C:\Program Files (x86)\Git\bin\*
+### Git for Windows and cygwin both installed
 
-### msysgit with installed cygwin
-
-If you have both msysgit and cygwin installed on Windows and want to use msysgit for git commands, you may get an error "No such file or directory" for a path starting "/cygdrive/"; e.g.:
+If you have both Git for Windows and cygwin installed on Windows and want to
+use Git for Windows for Git commands, you may get an error
+"No such file or directory" for a path starting with "/cygdrive/", for example:
 
     creating `/cygdrive/c/TEMP/git-ftp-m7GH/delete_tmp': No such file or directory
 
-The problem is that git-ftp use commands from both cygwin and msysgit folders, but cygwin is by default configured to start paths with "/cygdrive" prefix while msysgit starts paths with "/". To fix the problem, open file "<cygwin>\etc\fstab" (e.g. "c:\cygwin\etc\fstab") and change parameter "/cygwin/" to "/"; e.g.:
+The problem is that Git-ftp use commands from both Git for Windows and cygwin
+directories. But by default, cygwin is configured to start paths with the
+prefix "/cygdrive" while Git for Windows starts paths with "/".
+To fix the problem, open file "<cygwin>\etc\fstab"
+(e.g. "c:\cygwin\etc\fstab") and change parameter "/cygwin/" to "/", for example:
 
     # This is default:
     none /cygdrive/ cygdrive binary,posix=0,user 0 0
 
 change to:
 
-    # This is default:
+    # This is changed:
     none / cygdrive binary,posix=0,user 0 0
 
 After this, close all console windows and try again.
