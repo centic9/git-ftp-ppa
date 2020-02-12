@@ -1,3 +1,14 @@
+git-ftp (1.6.0+dfsg-1) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Update standards version to 4.4.1, no changes needed.
+  * Set debhelper-compat version in Build-Depends.
+
+  [ Dmitry Smirnov ]
+  * New upstream release.
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Wed, 12 Feb 2020 12:58:59 +1100
+
 git-ftp (1.5.2+dfsg-1) unstable; urgency=medium
 
   * New upstream release.

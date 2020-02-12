@@ -1,10 +1,10 @@
 Source: git-ftp
 Section: utils
 Priority: optional
-Standards-Version: 4.4.0
+Standards-Version: 4.4.1
 Maintainer: Dmitry Smirnov <onlyjob@debian.org>
 Uploaders: René Moser <mail@renemoser.net>
-Build-Depends: debhelper (>= 12~), git, pandoc, perl
+Build-Depends: debhelper-compat (= 12), git, pandoc, perl
 Homepage: https://github.com/git-ftp/git-ftp
 Vcs-Browser: https://salsa.debian.org/debian/git-ftp
 Vcs-Git: https://salsa.debian.org/debian/git-ftp.git
