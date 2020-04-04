@@ -1,3 +1,9 @@
+git-ftp (1.6.0+dfsg-1ubuntu0~ppa1) bionic; urgency=medium
+
+  * Backport to Bionic
+
+ -- Dominik Stadler (Ubuntu key) <dominik.stadler@gmx.at>  Sat, 04 Apr 2020 07:53:50 +0200
+
 git-ftp (1.6.0+dfsg-1) unstable; urgency=medium
 
   [ Debian Janitor ]
